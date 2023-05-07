@@ -1,0 +1,115 @@
+-------------------------------------------------------------------------------------------------
+PIPENV
+-------------------------------------------------------------------------------------------------
+we are using virtual environment of pipenv. 
+
+create new pipenv env ----- pipenv --python 3.9 --three --verbose --site-packages --pypi --venv-name myenv
+activate pipenv env ----- pipenv shell
+close pipenv shell ----- exit or "CTRL+D"
+path of you pipenv interpreter ----- pipenv --py
+if imports are not colored ----- add correct path of interpreter
+run the application ----- uvicorn main:app --reload
+how to save requirements ----- pipenv run pip freeze > requirements.txt
+how to run some pip command inside pipenv ----- pipenv run [command]
+
+-------------------------------------------------------------------------------------------------
+RECOMMENEDE STRUCTURE OF PROJECT
+-------------------------------------------------------------------------------------------------
+
+my_project/
+│
+├── Pipfile
+├── Pipfile.lock
+│
+├── app/
+│   ├── main.py
+│   ├── models.py
+│   └── ...
+│
+├── tests/
+│   ├── test_main.py
+│   └── ...
+│
+└── README.md
+
+
+-------------------------------------------------------------------------------------------------
+MINIKUBE COMMANDS / kubectl = kube control
+-------------------------------------------------------------------------------------------------
+
+start ----- minikube start
+check status ----- minikube status 
+create object ----- kubectl create [object name]
+get deployments ----- kubectl get deployments
+get pods ----- kubectl get pods
+delete deployment ----- kubectl delete deployment [name]
+create deployment ----- kubectl create deployment first-app --image=lukakap/kub-first-app (image is uploaded on docker hub) 
+run minikube dashboard ----- minikube dashboard 
+expose port of pods, using service object ----- kubectl expose deployment [deployment name] --type=LoadBalancer --port=8000
+(--type hase different values. ClusterIP = Can be reachable from inside cluster. NodePort = from outside of cluster. 
+LoadBalancer = expose and help to scale pods)  
+get services ----- kubectl get services
+get acceess to our service ----- minikube service [service name]
+if we don't have autoscaling how to scale out pods ----- kubectl scale deployment/[deployment name] --replicas=3 (replicas is number of pods to scale. in this example we will have 3 pods running)  
+update deployment based on new / updated image ----- kubectl set image deployment/[deployment name] [container name]=[image path/name] (container name - can be seen on dashboard, this is same as pod name. image path/name is path on repository like that - 
+lukakap/kub-first-app)
+see update status of deployment ----- kubectl rollout status deployment/[deployment name]
+undo deploymnet / in case if there was problem during latest deployment ----- kubectl rollout undo deployment/[deployment name]
+history of deployments ----- kubectl rollout history deployment/[deployment name] (we can add --revision to see detailed history of each deployment)
+go to specific deployment ----- kubectl rollout undo deployment/[deployment name] --to-revision=n (revision / deployment number)
+
+
+-------------------------------------------------------------------------------------------------
+UPLOAD IMAGE ON DOCKER HUB
+------------------------------------------------------------------------------------------------- 
+
+- create repository on docker hub (kub-first-app in our example)
+- retag local image ----- docker tag old_name lukakap/kub-first-app
+- push image ----- docker push lukakap/kub-first-app
+
+
+-------------------------------------------------------------------------------------------------
+UPDATE DEPLOYMENT
+------------------------------------------------------------------------------------------------- 
+
+- make some changes in code
+- rebuild image with different tag (lukakap/kub-first-app:2) (because deployment will not update if tag is not different from previous version)
+- push image to dockerhub
+- update deployment (path to image should be to update version too) 
+
+
+-------------------------------------------------------------------------------------------------
+DECLARATIVE APPROACH
+------------------------------------------------------------------------------------------------- 
+
+- we need to create seperate files (mostly) for each kubernetes object (deployment, services...)
+- create yaml file, for example deployment.yaml or service.yaml and write some rules and commands here for each object
+- need to write apiVersion variable, this can be seen by google "kubernetes deployment yaml"
+- to see documentation, can google reference doc for each object
+
+how to apply this deployment.yaml (in our example) to kuberneters?
+- kubectl apply -f=deployment.yaml (name or path to the file, can be multiple files)
+- kubectl apply -f=service.yaml (save is for services too)
+
+expose service
+- minikube service [name of service] (first-app-service in our example)
+
+changes in files
+- make changes
+- reapply files
+
+delete
+- kubectl delete -f=[file name] -f=[file name] ... that command will delete resources that was be made by file
+
+merge files
+- we can merge files into one file and use --- (3 dashes)
+- it is good practice to write services first and then deployment
+
+matchLabels or matchExpressions?
+- example:
+    matchExpressions:
+    - {key: app, operator: in, values: [second-app, first-app]} (operator can have just determined values)
+- example to delete using matchExpressions:
+    kubectl delete -l group=example
+
+    
